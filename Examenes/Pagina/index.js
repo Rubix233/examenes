@@ -33,7 +33,9 @@ const searchBtn = document.getElementById('searchBtn');
 const generateExamBtn = document.getElementById('generateExamBtn');
 const downloadExamBtn = document.getElementById('downloadExamBtn');
 
-const API_URL = 'http://localhost:3000/api/preguntas';
+//const API_URL = 'http://localhost:3000/api/preguntas';
+//const API_URL = 'http://172.22.50.6:3000/api/preguntas';
+const API_URL = '/api/preguntas';
 
 // --- Event Listeners (Escuchadores de Eventos) ---
 
