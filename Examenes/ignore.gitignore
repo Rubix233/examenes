@@ -1,0 +1,12 @@
+Ignorar dependencias de node (son muy pesadas y se instalan con npm install)
+
+node_modules/
+
+Ignorar secretos y variables de entorno (SEGURIDAD)
+
+.env
+
+Ignorar logs y archivos de sistema
+
+.DS_Store
+npm-debug.log
