@@ -113,48 +113,24 @@ exports.createExam = async (req, res) => {
 exports.downloadPdf = (req, res) => {
     const examData = req.body;
 
-    // Si no llega información del examen, no podemos generar nada
     if (!examData || !examData.preguntas) {
         return res.status(400).send('No exam data provided');
     }
 
-    const doc = new PDFDocument();
-    
-    // Configuración de cabeceras para forzar la descarga en el navegador
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=${examData.nombre}.pdf`);
+    try {
+        // 1. Delegamos la creación del PDF al servicio
+        const doc = preguntasService.generateExamPdf(examData);
 
-    // Conectamos el flujo del PDF directamente a la respuesta HTTP (Stream)
-    doc.pipe(res);
+        // 2. Configuración HTTP (Responsabilidad del Controlador)
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=${examData.nombre}.pdf`);
 
-    // -- Diseño del PDF --
-    // Título
-    doc.fontSize(20).text(examData.nombre, { align: 'center' });
-    doc.moveDown();
-    
-    // Metadatos
-    doc.fontSize(12).text(`Asignatura: ${examData.preguntas[0]?.asignatura || 'Varios'}`);
-    doc.text(`Fecha: ${new Date().toLocaleDateString()}`);
-    doc.moveDown();
-    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke(); // Línea separadora
-    doc.moveDown();
+        // 3. Conectamos el Stream del servicio a la Respuesta
+        doc.pipe(res);
+        doc.end(); // Finalizamos el stream aquí
 
-    // Loop de Preguntas
-    doc.fontSize(12);
-    examData.preguntas.forEach((q, i) => {
-        // Evitar que una pregunta quede cortada entre páginas
-        if (doc.y > 700) doc.addPage();
-
-        doc.font('Helvetica-Bold').text(`${i + 1}. ${q.enunciado}`);
-        doc.moveDown(0.5);
-        
-        doc.font('Helvetica');
-        q.opciones.forEach(opt => {
-            doc.text(`   O  ${opt}`); // Simula un checkbox
-        });
-        doc.moveDown(1);
-    });
-
-    // Finalizamos el documento (cierra el stream)
-    doc.end();
+    } catch (error) {
+        console.error("Error generando PDF:", error);
+        res.status(500).send("Error al generar el PDF");
+    }
 };

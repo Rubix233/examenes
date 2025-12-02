@@ -111,3 +111,45 @@ exports.generateExam = async (subject, amount) => {
         throw new Error('Error generando el examen: ' + error.message);
     }
 };
+
+/**
+ * Genera un objeto PDFKit con el contenido del examen.
+ * El controlador decide qué hacer con el PDF (stream, guardar, etc.)
+ */
+
+exports.generateExamPdf = (examData) => {
+    // 1. Creamos el documento
+    const doc = new PDFDocument();
+
+    // 2. Lógica de Diseño (Movida desde el controlador)
+    
+    // Título
+    doc.fontSize(20).text(examData.nombre, { align: 'center' });
+    doc.moveDown();
+    
+    // Metadatos
+    doc.fontSize(12).text(`Asignatura: ${examData.preguntas[0]?.asignatura || 'Varios'}`);
+    doc.text(`Fecha: ${new Date().toLocaleDateString()}`);
+    doc.moveDown();
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke(); // Línea separadora
+    doc.moveDown();
+
+    // Loop de Preguntas
+    doc.fontSize(12);
+    examData.preguntas.forEach((q, i) => {
+        // Evitar corte de página
+        if (doc.y > 700) doc.addPage();
+
+        doc.font('Helvetica-Bold').text(`${i + 1}. ${q.enunciado}`);
+        doc.moveDown(0.5);
+        
+        doc.font('Helvetica');
+        q.opciones.forEach(opt => {
+            doc.text(`   O  ${opt}`);
+        });
+        doc.moveDown(1);
+    });
+
+    // Devolvemos el objeto doc para que el controlador decida qué hacer con él
+    return doc;
+};
